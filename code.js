@@ -1,14 +1,18 @@
 const express = require('express');
 const axios = require('axios');
-const app = express();
+const dns = require('dns');
 
+// บังคับให้ Node.js ใช้ DNS ของ Google เพื่อแก้ปัญหาหาโดเมนไม่เจอบน Cloud
+dns.setServers(['8.8.8.8', '1.1.1.1']);
+
+const app = express();
 app.use(express.json());
 
 app.get('/live.m3u8', async (req, res) => {
     const streamUrl = process.env.STREAM_URL;
     
     if (!streamUrl) {
-        return res.status(404).send('Error loading stream: No STREAM_URL environment variable provided on Render');
+        return res.status(404).send('Error loading stream: No STREAM_URL environment variable provided');
     }
 
     try {
@@ -33,7 +37,7 @@ app.get('/live.m3u8', async (req, res) => {
     }
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
