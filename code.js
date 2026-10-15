@@ -20,22 +20,50 @@ app.post('/update-link', (req, res) => {
 
 // 2. Endpoint สำหรับแปลงลิงก์ M3U8 (Proxy ดึงสตรีมพร้อมแนบ Header กันโดนบล็อก)
 app.get('/live.m3u8', async (req, res) => {
+
     if (!currentStreamUrl) {
+
         return res.status(404).send('Error loading stream: No stream URL provided');
+
     }
 
+
     try {
-        // ดึงข้อมูลสตรีมจากต้นทางพร้อมแนบ Referer
+
+        console.log('Attempting to fetch stream from:', currentStreamUrl);
+
         const response = await axios({
+
             method: 'get',
+
             url: currentStreamUrl,
+
             headers: {
+
                 'Referer': 'https://kickskall.com/',
+
                 'Origin': 'https://kickskall.com',
+
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+
             },
+
             responseType: 'stream'
+
         });
+
+
+        response.data.pipe(res);
+
+    } catch (error) {
+
+        console.error('Proxy error details:', error.response ? error.response.status : error.message);
+
+        res.status(500).send(`Error loading stream: ${error.message}`);
+
+    }
+
+});
 
         // ส่งคอนเทนต์สตรีมต่อให้ผู้เล่น (เช่น VLC)
         response.data.pipe(res);
